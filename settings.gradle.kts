@@ -18,4 +18,5 @@ pluginManagement {
 rootProject.name = "paging"
 
 include(":paging-core")
+include(":paging-react")
 
