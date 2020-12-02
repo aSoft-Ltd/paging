@@ -52,8 +52,7 @@ class PageFetcher<K : Any, D : Any>(
         job?.cancel()
         job = launch {
             flow<State<K, D>> {
-                val currentPage =
-                    latestDisplayedPage ?: throw Exception("Current page can't be null")
+                val currentPage = latestDisplayedPage ?: throw Exception("Current page can't be null")
                 emit(State.Loading())
                 val page = loader.nextOf(currentPage)
                 emit(State.Idle.FromSuccess(page))

@@ -19,4 +19,5 @@ rootProject.name = "paging"
 
 include(":paging-core")
 include(":paging-react")
+include(":samples:paging-grid")
 
