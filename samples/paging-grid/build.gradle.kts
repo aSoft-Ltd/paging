@@ -5,6 +5,7 @@ plugins {
 
 konfig {
     debug()
+    staging()
     release()
 }
 
@@ -22,7 +23,9 @@ kotlin {
     sourceSets {
         val main by getting {
             dependencies {
-                api(project(":paging-react"))
+                implementation(project(":paging-react"))
+                implementation(asoft("reakt-media", vers.asoft.reakt))
+                implementation(devNpm("file-loader", "6.2.0"))
             }
         }
     }

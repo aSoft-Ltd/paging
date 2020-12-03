@@ -2,7 +2,7 @@ object vers {
     object asoft {
         val color = "0.0.1"
         val theme = "0.0.4"
-        val reakt = "0.0.1"
+        val reakt = "0.0.5"
     }
 
     object kotlinx {
