@@ -1,9 +1,9 @@
 plugins {
     kotlin("js")
-    id("tz.co.asoft.application")
+    id("tz.co.asoft.applikation")
 }
 
-konfig {
+applikation {
     debug()
     staging()
     release()
@@ -25,7 +25,7 @@ kotlin {
             dependencies {
                 implementation(project(":paging-react"))
                 implementation(asoft("reakt-media", vers.asoft.reakt))
-                implementation(devNpm("file-loader", "6.2.0"))
+                implementation(devNpm("file-loader", vers.npm.file_loader))
             }
         }
     }

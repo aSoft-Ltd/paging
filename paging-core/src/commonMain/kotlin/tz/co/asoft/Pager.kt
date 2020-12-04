@@ -6,8 +6,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class Pager<D>(val fetcher: PageFetcher<D>) : CoroutineScope by CoroutineScope(SupervisorJob()) {
+class Pager<D>(private val fetcher: PageFetcher<D>) : CoroutineScope by CoroutineScope(SupervisorJob()) {
     val state = MutableStateFlow(fetcher.state.value.toPagingState())
+
+    val pageSize get() = fetcher.pageSize
 
     init {
         launch {
