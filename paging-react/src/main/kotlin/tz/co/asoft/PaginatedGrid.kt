@@ -9,16 +9,16 @@ import tz.co.asoft.PaginatedGrid.Props
 import tz.co.asoft.PaginatedGrid.State
 
 @JsExport
-class PaginatedGrid<D : Any> private constructor(p: Props<D>) : RComponent<Props<D>, State<D>>(p), CoroutineScope by CoroutineScope(SupervisorJob()) {
-    class Props<D : Any>(
-        val pager: Pager<*, D>,
+class PaginatedGrid<D> private constructor(p: Props<D>) : Component<Props<D>, State<D>>(p) {
+    class Props<D>(
+        val pager: Pager<D>,
         val cols: String,
-        val rows: String,
         val gap: String,
-        val builder: StyledDOMBuilder<DIV>.(D) -> Unit
+        val header: (StyledDOMBuilder<DIV>.() -> Unit)?,
+        val builder: StyledDOMBuilder<DIV>.(D?) -> Unit
     ) : RProps
 
-    class State<D : Any>(var value: PagingState<*, D>) : RState
+    class State<D>(var pager: Pager.State<D>) : RState
 
     init {
         state = State(props.pager.state.value)
@@ -29,9 +29,9 @@ class PaginatedGrid<D : Any> private constructor(p: Props<D>) : RComponent<Props
         observer = props.pager.observe()
     }
 
-    fun Pager<*, D>.observe() = launch {
+    private fun Pager<D>.observe() = launch {
         state.collect {
-            setState { value = it }
+            setState { pager = it }
         }
     }
 
@@ -45,29 +45,54 @@ class PaginatedGrid<D : Any> private constructor(p: Props<D>) : RComponent<Props
         cancel()
     }
 
-    override fun RBuilder.render(): dynamic = when (val ui = state.value) {
-        is PagingState.Loading -> Loader(ui.msg)
-        is PagingState.Showing -> Grid(rows = "1fr auto") {
-            GridAdapter(
-                ui.page.data,
-                cols = props.cols,
-                gap = props.gap,
-                rows = props.rows,
-                builder = props.builder
-            )
-            Paginator(
-                onPrev = { props.pager.loadPrevious() }.takeIf { ui.page.prev != null },
-                onNext = { props.pager.loadNext() }.takeIf { ui.page.nextKey != null }
-            )
-        }
-        is PagingState.Error -> Error(ui.cause?.message ?: "Unknown error")
+    private fun RBuilder.ShowGrid(page: Page<D>?) = Grid(rows = "30px 1fr", gap = "0.5em") {
+        Paginator(
+            onPrev = { props.pager.loadPrevious() }.takeIf { props.pager.canLoadPrevious() },
+            center = props.header,
+            onNext = { props.pager.loadNext() }.takeIf { props.pager.canLoadNext() }
+        )
+        GridAdapter(
+            data = page?.data ?: List(props.pager.pageSize) { null },
+            cols = props.cols,
+            gap = props.gap,
+            rows = "1fr",
+            builder = props.builder
+        )
+    }
+
+    override fun RBuilder.render(): dynamic = when (val ui = state.pager) {
+        is Pager.State.Loading -> ShowGrid(ui.cachedPage)
+        is Pager.State.Showing -> ShowGrid(ui.page)
+        is Pager.State.Error -> Error(ui.cause?.message ?: "Unknown error")
     }
 }
 
-fun <D : Any> RBuilder.PaginatedGrid(
-    pager: Pager<*, D>,
-    cols: String = "1fr",
-    rows: String = "1fr",
+fun <D> RBuilder.PaginatedGrid(
+    fetcher: PageFetcher<D>,
+    cols: String,
     gap: String = "1em",
-    builder: StyledDOMBuilder<DIV>.(D) -> Unit
-) = child(PaginatedGrid::class.js, Props(pager, cols, rows, gap, builder)) {}
+    header: (StyledDOMBuilder<DIV>.() -> Unit)? = null,
+    builder: StyledDOMBuilder<DIV>.(D?) -> Unit
+) = child(PaginatedGrid::class.js, Props(fetcher.pager, cols, gap, header, builder)) {}
+
+fun <D> RBuilder.PaginatedGrid(
+    pager: Pager<D>,
+    cols: String,
+    gap: String = "1em",
+    header: (StyledDOMBuilder<DIV>.() -> Unit)? = null,
+    builder: StyledDOMBuilder<DIV>.(D?) -> Unit
+) = child(PaginatedGrid::class.js, Props(pager, cols, gap, header, builder)) {}
+
+fun <D> RBuilder.PaginatedList(
+    fetcher: PageFetcher<D>,
+    gap: String = "1em",
+    header: (StyledDOMBuilder<DIV>.() -> Unit)? = null,
+    builder: StyledDOMBuilder<DIV>.(D?) -> Unit
+) = PaginatedGrid(fetcher.pager, cols = "1fr", gap = gap, header = header, builder = builder)
+
+fun <D> RBuilder.PaginatedList(
+    pager: Pager<D>,
+    gap: String = "1em",
+    header: (StyledDOMBuilder<DIV>.() -> Unit)? = null,
+    builder: StyledDOMBuilder<DIV>.(D?) -> Unit
+) = PaginatedGrid(pager, cols = "1fr", gap = gap, header = header, builder = builder)

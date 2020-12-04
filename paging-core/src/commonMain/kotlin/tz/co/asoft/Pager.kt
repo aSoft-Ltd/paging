@@ -6,11 +6,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class Pager<K : Any, D : Any>(
-    private val fetcher: PageFetcher<K, D>,
-    private val showTmpPages: Boolean = true
-) : CoroutineScope by CoroutineScope(SupervisorJob()) {
+class Pager<D>(private val fetcher: PageFetcher<D>) : CoroutineScope by CoroutineScope(SupervisorJob()) {
     val state = MutableStateFlow(fetcher.state.value.toPagingState())
+
+    val pageSize get() = fetcher.pageSize
 
     init {
         launch {
@@ -20,14 +19,21 @@ class Pager<K : Any, D : Any>(
         }
     }
 
-    private fun PageFetcher.State<K, D>.toPagingState(): PagingState<K, D> = when (this) {
-        is PageFetcher.State.Idle.FromInitiation -> PagingState.Loading("Loading")
-        is PageFetcher.State.Loading -> PagingState.Loading("Loading")
-        is PageFetcher.State.Idle.FromSuccess -> PagingState.Showing(page)
-        is PageFetcher.State.Idle.FromFailure -> PagingState.Error(cause)
+    sealed class State<D> {
+        class Loading<D>(val cachedPage: Page<D>?, val msg: String) : State<D>()
+        class Showing<D>(val page: Page<D>) : State<D>()
+        class Error<D>(val cause: Throwable?) : State<D>()
     }
 
-    fun loadNext() = fetcher.loadNext()
+    private fun PageFetcher.State<D>.toPagingState(): State<D> = when (this) {
+        is PageFetcher.State.Idle.FromInitiation -> State.Loading(null, "Loading")
+        is PageFetcher.State.Loading -> State.Loading(cachedPage, "Loading")
+        is PageFetcher.State.Idle.FromSuccess -> State.Showing(page)
+        is PageFetcher.State.Idle.FromFailure -> State.Error(cause)
+    }
 
+    fun canLoadNext() = fetcher.canLoadNext()
+    fun loadNext() = fetcher.loadNext()
+    fun canLoadPrevious() = fetcher.canLoadPrevious()
     fun loadPrevious() = fetcher.loadPrevious()
 }

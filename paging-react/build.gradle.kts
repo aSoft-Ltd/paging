@@ -1,6 +1,8 @@
 plugins {
     kotlin("js")
     id("tz.co.asoft.library")
+    id("io.codearte.nexus-staging")
+    signing
 }
 
 kotlin {
@@ -14,3 +16,8 @@ kotlin {
         }
     }
 }
+
+aSoftLibrary(
+    version = vers.asoft.paging,
+    description = "A react specific implementation for the paging-core library"
+)
