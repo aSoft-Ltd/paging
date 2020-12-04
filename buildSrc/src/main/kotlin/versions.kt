@@ -1,11 +1,11 @@
 object vers {
     object asoft {
-        val color = "0.0.1"
-        val theme = "0.0.4"
+        val paging = "0.0.1"
         val reakt = "0.0.5"
     }
 
     object kotlinx {
-        val atomicfu = "0.14.4"
+        val serialization = "1.0.1"
+        val coroutines = "1.4.2"
     }
 }

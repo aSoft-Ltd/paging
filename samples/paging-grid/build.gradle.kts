@@ -1,9 +1,9 @@
 plugins {
     kotlin("js")
-    id("tz.co.asoft.application")
+    id("tz.co.asoft.applikation")
 }
 
-konfig {
+applikation {
     debug()
     staging()
     release()

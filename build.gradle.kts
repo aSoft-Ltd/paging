@@ -1,8 +1,14 @@
 plugins {
-    id("com.android.library") version "4.1.0" apply false
-    kotlin("multiplatform") version "1.4.20" apply false
-    kotlin("plugin.serialization") version "1.4.20" apply false
-    id("tz.co.asoft.library") version "1.0.0" apply false
-    id("tz.co.asoft.application") version "0.0.3" apply false
-    id("io.codearte.nexus-staging") version "0.22.0" apply false
+    val vers = object {
+        val agp = "4.1.0"
+        val kotlin = "1.4.20"
+        val asoft_builder = "1.1.1"
+        val nexus_stagin = "0.22.0"
+    }
+    id("com.android.library") version vers.agp apply false
+    kotlin("multiplatform") version vers.kotlin apply false
+    kotlin("plugin.serialization") version vers.kotlin apply false
+    id("tz.co.asoft.library") version vers.asoft_builder apply false
+    id("tz.co.asoft.applikation") version vers.asoft_builder apply false
+    id("io.codearte.nexus-staging") version vers.nexus_stagin apply false
 }
