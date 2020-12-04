@@ -1,6 +1,7 @@
 package tz.co.asoft
 
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.css.*
 import kotlinx.css.Color
 import kotlinx.css.properties.boxShadow
@@ -35,7 +36,7 @@ fun main() = document.getElementById("root").setContent {
                     boxShadow(Color.gray, blurRadius = 4.px, spreadRadius = 2.px)
                     boxShadow(Color.gray, blurRadius = 4.px, spreadRadius = 2.px)
                 }
-                PaginatedList(listFetcher.pager, gap = "0.5em") { person ->
+                PaginatedList(listFetcher, gap = "0.5em") { person ->
                     css { children { alignSelf = Align.center } }
                     PersonView(person)
                 }
@@ -48,15 +49,16 @@ fun main() = document.getElementById("root").setContent {
                     boxShadow(Color.gray, blurRadius = 4.px, spreadRadius = 2.px)
                     boxShadow(Color.gray, blurRadius = 4.px, spreadRadius = 2.px)
                 }
+
                 PaginatedTable(
-                    listFetcher.pager,
+                    listFetcher,
                     columns = listOf(
-                        Column("Name") { it.name },
-                        Column("Age") { it.age.toString() }
+                        Column("Name") { it?.name ?: "firstname lastname" },
+                        Column("Age") { it?.age?.toString() ?: "N/A" }
                     ),
                     actions = listOf(
-                        AButton.Contained("Submit", FaCheck) {},
-                        AButton.Outlined("Cancel", FaCross) {}
+                        AButton.Contained("Submit", FaCheck) { window.alert(it?.name ?: "Unknown") },
+                        AButton.Outlined("Cancel", FaTimes) { window.alert(it?.age?.toString() ?: "Unkown age") }
                     )
                 )
             }

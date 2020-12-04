@@ -6,7 +6,7 @@ object vers {
     object asoft {
         val builders = "1.1.1"
         val paging = "0.0.1"
-        val reakt = "0.0.5"
+        val reakt = "0.0.7"
     }
 
     object kotlinx {
