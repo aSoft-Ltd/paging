@@ -17,7 +17,7 @@ kotlin {
     }
 }
 
-aSoftLibrary(
+aSoftOSSLibrary(
     version = vers.asoft.paging,
     description = "A react specific implementation for the paging-core library"
 )
