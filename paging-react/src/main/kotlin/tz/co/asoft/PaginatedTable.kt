@@ -1,83 +1,53 @@
 package tz.co.asoft
 
 import kotlinext.js.jsObject
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import react.*
-import tz.co.asoft.PaginatedTable.Props
-import tz.co.asoft.PaginatedTable.State
+import react.RBuilder
+import react.RProps
+import react.functionalComponent
 
-@JsExport
-class PaginatedTable<D> private constructor(p: Props<D>) : Component<Props<D>, State<D>>(p) {
-    class Props<D>(
-        val pager: Pager<D>,
-        val columns: List<Column<D?>>,
-        val actions: List<AButton<D?>>?,
-        val sortable: Boolean,
-        val resizable: Boolean,
-        val filterable: Boolean
-    ) : RProps
+private external interface Props<D> : RProps {
+    var pager: Pager<D>
+    var columns: List<Column<D?>>
+    var actions: List<AButton<D?>>?
+    var sortable: Boolean
+    var resizable: Boolean
+    var filterable: Boolean
+}
 
-    class State<D>(var value: Pager.State<D>) : RState
-
-    init {
-        state = State(p.pager.state.value)
-    }
-
-    private var observer: Job? = null
-    override fun componentWillMount() {
-        observer = props.pager.observe()
-    }
-
-    private fun Pager<D>.observe() = launch {
-        state.collect {
-            setState { value = it }
-        }
-    }
-
-    override fun componentWillReceiveProps(nextProps: Props<D>) {
-        observer?.cancel()
-        observer = nextProps.pager.observe()
-    }
-
-    override fun componentWillUnmount() {
-        observer?.cancel()
-        cancel()
-    }
-
-    private fun RBuilder.ShowTable(page: Page<D>?) = Grid(rows = "1fr 30px") {
-        val pageSize = props.pager.pageSize
-        FoldableTable(
-            data = page?.data ?: List(pageSize) { jsObject() },
-            columns = props.columns,
-            actions = props.actions,
-            showPagination = false,
-            defaultPageSize = pageSize,
-            sortable = props.sortable,
-            resizable = props.resizable,
-            filterable = props.filterable
-        )
-        Paginator(
-            onPrev = { props.pager.loadPrevious() }.takeIf { props.pager.canLoadPrevious() },
-            onNext = { props.pager.loadNext() }.takeIf { props.pager.canLoadNext() }
-        )
-    }
-
-    override fun RBuilder.render(): dynamic = when (val ui = state.value) {
-        is Pager.State.Loading -> ShowTable(ui.cachedPage)
-        is Pager.State.Showing -> ShowTable(ui.page)
+private fun <D> PaginatedTableHook() = functionalComponent<Props<D>> { props ->
+    when (val ui = props.pager.state.asState()) {
+        is Pager.State.Loading -> ShowTable(props, ui.cachedPage)
+        is Pager.State.Showing -> ShowTable(props, ui.page)
         is Pager.State.Error -> Error(ui.cause?.message ?: "Unknown error")
     }
 }
 
-fun <D> RBuilder.PaginatedTable(
+private fun <D> RBuilder.ShowTable(props: Props<D>, page: Page<D>?) = Grid(rows = "1fr 30px") {
+    val pageSize = props.pager.pageSize
+    FoldableTable(
+        data = page?.data ?: List(pageSize) { jsObject() },
+        columns = props.columns,
+        actions = props.actions,
+        showPagination = false,
+        defaultPageSize = pageSize,
+        sortable = props.sortable,
+        resizable = props.resizable,
+        filterable = props.filterable
+    )
+    Paginator(
+        onPrev = { props.pager.loadPrevious() }.takeIf { props.pager.canLoadPrevious() },
+        onNext = { props.pager.loadNext() }.takeIf { props.pager.canLoadNext() }
+    )
+}
+
+inline fun <D> RBuilder.PaginatedTable(
     fetcher: PageFetcher<D>,
     columns: List<Column<D?>>,
     actions: List<AButton<D?>>? = null,
     sortable: Boolean = true,
     resizable: Boolean = true,
     filterable: Boolean = true
-) = child(PaginatedTable::class.js, Props(fetcher.pager, columns, actions, sortable, resizable, filterable)) {}
+) = PaginatedTable(fetcher.pager, columns, actions, sortable, resizable, filterable)
 
 fun <D> RBuilder.PaginatedTable(
     pager: Pager<D>,
@@ -86,4 +56,11 @@ fun <D> RBuilder.PaginatedTable(
     sortable: Boolean = true,
     resizable: Boolean = true,
     filterable: Boolean = true
-) = child(PaginatedTable::class.js, Props(pager, columns, actions, sortable, resizable, filterable)) {}
+) = child(PaginatedTableHook<D>(), jsObject<Props<D>>().also {
+    it.pager = pager
+    it.columns = columns
+    it.actions = actions
+    it.sortable = sortable
+    it.resizable = resizable
+    it.filterable = filterable
+}) {}

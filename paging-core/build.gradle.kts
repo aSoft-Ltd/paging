@@ -26,7 +26,7 @@ kotlin {
     }
 }
 
-aSoftLibrary(
+aSoftOSSLibrary(
     version = vers.asoft.paging,
     description = "A Platform agnostic paging library"
 )
