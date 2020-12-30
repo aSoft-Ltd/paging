@@ -5,7 +5,8 @@ object vers {
 
     object asoft {
         val builders = "1.2.0"
-        val paging = "0.0.2"
+        val paging = "0.0.30"
+        val later = "0.0.41"
         val reakt = "0.0.7"
     }
 

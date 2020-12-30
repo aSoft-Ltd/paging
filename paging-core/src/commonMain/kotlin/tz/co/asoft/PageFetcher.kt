@@ -12,8 +12,10 @@ import kotlinx.coroutines.launch
 class PageFetcher<D>(
     val source: PagingSource<D>,
     val pageSize: Int
-) : CoroutineScope by CoroutineScope(SupervisorJob()) {
+) {
     val state = MutableStateFlow<State<D>>(State.Idle.FromInitiation())
+
+    internal val scope = CoroutineScope(SupervisorJob())
 
     private var currentPageNo = -1
 
@@ -44,10 +46,10 @@ class PageFetcher<D>(
 
     private fun loadFirst() {
         job?.cancel()
-        job = launch {
+        job = scope.launch {
             flow {
                 emit(State.Loading(pages[1]))
-                emit(State.Idle.FromSuccess(pages.update(source.firstPage(pageSize))))
+                emit(State.Idle.FromSuccess(pages.update(source.firstPage(pageSize).await())))
             }.catch {
                 emit(State.Idle.FromFailure(it.cause))
             }.collect {
@@ -60,12 +62,12 @@ class PageFetcher<D>(
 
     fun loadNext() {
         job?.cancel()
-        job = launch {
+        job = scope.launch {
             flow {
                 val currentPage = pages[currentPageNo] ?: throw RuntimeException("Can't load next of unknow page")
                 val cachedPage = pages[currentPageNo + 1]?.let { pages.update(it) }
                 emit(State.Loading(cachedPage))
-                emit(State.Idle.FromSuccess(pages.update(source.nextOf(currentPage))))
+                emit(State.Idle.FromSuccess(pages.update(source.nextOf(currentPage).await())))
             }.catch {
                 emit(State.Idle.FromFailure(it.cause))
             }.collect {
@@ -78,12 +80,12 @@ class PageFetcher<D>(
 
     fun loadPrevious() {
         job?.cancel()
-        job = launch {
+        job = scope.launch {
             flow {
                 val currentPage = pages[currentPageNo] ?: throw RuntimeException("Can't load previous of an unknown page")
                 val cachedPage = pages[currentPage.pageNo - 1]?.let { pages.update(it) }
                 emit(State.Loading(cachedPage))
-                emit(State.Idle.FromSuccess(pages.update(source.prevOf(currentPage))))
+                emit(State.Idle.FromSuccess(pages.update(source.prevOf(currentPage).await())))
             }.catch {
                 emit(State.Idle.FromFailure(it.cause))
             }.collect { state.value = it }
