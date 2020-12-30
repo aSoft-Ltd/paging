@@ -13,14 +13,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                api(asoft("later-core", vers.asoft.later))
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${vers.kotlinx.coroutines}")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-core:${vers.kotlinx.serialization}")
-            }
-        }
-
-        val androidMain by getting {
-            dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-android:${vers.kotlinx.coroutines}")
             }
         }
     }
