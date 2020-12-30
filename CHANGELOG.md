@@ -1,3 +1,6 @@
+# 0.0.30 : 2020.12.30
+- Added support for `Later`
+
 # 0.0.2 : 2020.12.20
 ## paging-react
 - Migrated paging components to external interfaces and hooks implementation
