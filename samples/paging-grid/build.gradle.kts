@@ -10,22 +10,13 @@ applikation {
 }
 
 kotlin {
-    js(IR) {
-        browser {
-            commonWebpackConfig {
-                cssSupport.enabled = true
-                outputFileName = "main.js"
-            }
-        }
-        binaries.executable()
-    }
+    js(IR) { application() }
 
     sourceSets {
         val main by getting {
             dependencies {
                 implementation(project(":paging-react"))
                 implementation(asoft("reakt-media", vers.asoft.reakt))
-                implementation(devNpm("file-loader", vers.npm.file_loader))
             }
         }
     }

@@ -1,3 +1,8 @@
+# 0.0.31 : 2021.01.08
+- Updated builders to 1.3.0
+- Updated reakt to 0.0.90
+- Provided android support from pure jvm artifacts
+
 # 0.0.30 : 2020.12.30
 - Added support for `Later`
 
